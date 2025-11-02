@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "./auth";
+import { auth } from "../lib/auth";
 import { runAgent } from "../chat/agents/ai";
 import { requireAuth } from "./middleware";
 
 const app = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT;
 
 app.use(
   cors({
