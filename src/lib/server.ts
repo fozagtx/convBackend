@@ -8,20 +8,17 @@ import { requireAuth } from "./middleware";
 const app = express();
 const port = process.env.PORT || 8000;
 
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:3000"],
+    credentials: true,
+  }),
+);
 
 app.use("/api/auth", toNodeHandler(auth));
 
 app.use(express.json());
 
-// AI Agent endpoint (protected)
 app.post("/api/agent", requireAuth, async (req, res) => {
   try {
     const { prompt } = req.body;

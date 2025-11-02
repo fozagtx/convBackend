@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { generateText, stepCountIs } from "ai";
 import { google } from "@ai-sdk/google";
 import { firecrawlTool } from "../tools/crawlTool";
 
@@ -11,7 +11,7 @@ export async function runAgent(userPrompt: string) {
     tools: {
       firecrawl: firecrawlTool,
     },
-    maxSteps: 5,
+    stopWhen: stepCountIs(5),
   });
 
   return {

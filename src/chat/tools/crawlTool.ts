@@ -1,15 +1,15 @@
 import { tool } from "ai";
 import { z } from "zod";
-import FirecrawlApp from "@mendable/firecrawl-js";
+import Firecrawl from "@mendable/firecrawl-js";
 
-let firecrawl: FirecrawlApp | null = null;
+let firecrawl: Firecrawl | null = null;
 
 function getFirecrawl() {
   if (!firecrawl) {
     if (!process.env.FIRECRAWL_API_KEY) {
       throw new Error("FIRECRAWL_API_KEY environment variable is required");
     }
-    firecrawl = new FirecrawlApp({
+    firecrawl = new Firecrawl({
       apiKey: process.env.FIRECRAWL_API_KEY,
     });
   }
@@ -21,22 +21,24 @@ export const firecrawlTool = tool({
   parameters: z.object({
     url: z.string().describe("The URL of the website to scrape"),
   }),
-  execute: async ({ url }: { url: string }) => {
+  // @ts-expect-error - tool execute function signature mismatch in ai SDK
+  execute: async (params: { url: string }) => {
     try {
       const firecrawlInstance = getFirecrawl();
-      const result = await firecrawlInstance.scrapeUrl(url, {
+      const result = await firecrawlInstance.scrape(params.url, {
         formats: ["markdown", "html"],
       });
       return {
         success: true,
-        content: result.markdown,
-        html: result.html,
-        metadata: result.metadata,
+        content: result.markdown || "",
+        html: result.html || "",
+        metadata: result.metadata || {},
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   },
