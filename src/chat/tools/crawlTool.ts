@@ -16,11 +16,15 @@ export const firecrawlTool = tool({
       const result = await firecrawl.scrapeUrl(url, {
         formats: ["markdown", "html"],
       });
+
+      // Firecrawl v4+ returns data in a nested structure
+      const data = result?.data || result;
+
       return {
         success: true,
-        content: result.markdown,
-        html: result.html,
-        metadata: result.metadata,
+        content: data?.markdown || "",
+        html: data?.html || "",
+        metadata: data?.metadata || {},
       };
     } catch (error) {
       return {
