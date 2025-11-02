@@ -1,19 +1,28 @@
 import express from "express";
+import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { runAgent } from "../chat/agents/ai";
+import { requireAuth } from "./middleware";
 
 const app = express();
-const port = 8000;
+const port = process.env.PORT || 8000;
 
-app.all("/api/auth/*", toNodeHandler(auth));
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
+  ],
+  credentials: true,
+}));
 
-// Mount express json middleware after Better Auth handler
-// or only apply it to routes that don't interact with Better Auth
+app.use("/api/auth", toNodeHandler(auth));
+
 app.use(express.json());
 
-// AI Agent endpoint
-app.post("/api/agent", async (req, res) => {
+// AI Agent endpoint (protected)
+app.post("/api/agent", requireAuth, async (req, res) => {
   try {
     const { prompt } = req.body;
 
@@ -22,8 +31,16 @@ app.post("/api/agent", async (req, res) => {
     }
 
     const response = await runAgent(prompt);
+    const user = (req as any).user;
 
-    res.json({ response });
+    res.json({
+      response,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
   } catch (error) {
     console.error("Agent error:", error);
     res.status(500).json({ error: "Failed to process request" });
